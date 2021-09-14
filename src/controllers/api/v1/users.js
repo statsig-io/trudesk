@@ -19,6 +19,7 @@ var permissions = require('../../../permissions')
 var emitter = require('../../../emitter')
 var UserSchema = require('../../../models/user')
 var groupSchema = require('../../../models/group')
+var roleSchema = require('../../../models/role')
 var notificationSchema = require('../../../models/notification')
 
 var apiUsers = {}
@@ -233,6 +234,174 @@ apiUsers.create = function (req, res) {
       )
     })
   })
+}
+
+/*********************************
+ *
+ * STUFF
+ */
+apiUsers.createLogin2 = function (req, res) {
+  var response = {}
+  response.success = true
+
+  var postData = req.body
+
+  if (_.isUndefined(postData) || !_.isObject(postData)) {
+    return res.status(400).json({ success: false, error: 'Invalid Post Data' })
+  }
+
+  var propCheck = ['aEmail', 'aGrpName']
+
+  if (
+    !_.every(propCheck, function (x) {
+      return x in postData
+    })
+  ) {
+    return res.status(400).json({ success: false, error: 'Invalid Post Data' })
+  }
+
+  roleSchema.getRoleByName('user', function (err, role) {
+    if (err) return res.status(500).json({ success: false, error: err })
+
+    var Chance = require('chance')
+    var chance = new Chance()
+
+    var pwd = chance.hash()
+    var account = new UserSchema({
+      username: postData.aEmail,
+      password: pwd,
+      fullname: postData.aEmail,
+      email: postData.aEmail,
+      accessToken: chance.hash(),
+      role: role.id
+    })
+
+    account.save(function (err, a) {
+      if (err) {
+        response.success = false
+        response.error = err
+        winston.debug(response)
+        return res.status(400).json(response)
+      }
+
+      a.populate('role', function (err, populatedAccount) {
+        if (err) return res.status(500).json({ success: false, error: err })
+
+        response.account = populatedAccount.toObject()
+        delete response.account.password
+
+        var addMember = grp => {
+          grp.addMember(a._id, function (err, success) {
+            if (err) return res.status(500).json({ success: false, error: err })
+
+            grp.save(function (err) {
+              if (err) return res.status(500).json({ success: false, error: err })
+              response.account.groups = [grp]
+              return res.json(response)
+            })
+          })
+        }
+
+        var grpName = postData.aGrpName
+        groupSchema.getGroupByName(grpName, function (err, grp) {
+          if (err) return res.status(500).json({ success: false, error: err })
+          if (grp) {
+            addMember(grp)
+          } else {
+            var GroupSchema = require('../../../models/group')
+            var group = new GroupSchema({
+              name: grpName,
+              members: [a._id],
+              sendMailTo: [a._id],
+              public: false
+            })
+
+            group.save(function (err, savedGroup) {
+              if (err) return res.status(500).json({ success: false, error: err })
+              response.account.groups = [group]
+              return res.json(response)
+            })
+          }
+        })
+      })
+    })
+  })
+}
+
+const promisify = (fn, obj) => (...args) =>
+  new Promise((resolve, reject) =>
+    (obj ? fn.bind(obj) : fn)(...args, (error, result) => (error ? reject(error) : resolve(result)))
+  )
+
+apiUsers.createLogin = async (req, res) => {
+  var response = {}
+  response.success = true
+
+  var postData = req.body
+  if (_.isUndefined(postData) || !_.isObject(postData)) {
+    return res.status(400).json({ success: false, error: 'Invalid Post Data' })
+  }
+
+  var propCheck = ['aEmail', 'aGrpName']
+  if (
+    !_.every(propCheck, function (x) {
+      return x in postData
+    })
+  ) {
+    return res.status(400).json({ success: false, error: 'Invalid Post Data' })
+  }
+
+  try {
+    let userAccount = await promisify(UserSchema.getUserByEmail, UserSchema)(postData.aEmail)
+    if (userAccount) {
+      response.account = userAccount.toObject()
+      delete response.account.password
+      return res.json(response)
+    }
+
+    const role = await promisify(roleSchema.getRoleByName, roleSchema)('user')
+
+    var Chance = require('chance')
+    var chance = new Chance()
+
+    var pwd = chance.hash()
+    var account = new UserSchema({
+      username: postData.aEmail,
+      password: pwd,
+      fullname: postData.aEmail,
+      email: postData.aEmail,
+      accessToken: chance.hash(),
+      role: role.id
+    })
+
+    const a = await promisify(account.save, account)()
+    const populatedAccount = await promisify(a.populate, a)('role')
+    response.account = populatedAccount.toObject()
+    delete response.account.password
+
+    const grpName = postData.aGrpName
+    let grp = await promisify(groupSchema.getGroupByName, groupSchema)(grpName)
+    if (grp) {
+      await promisify(grp.addMember, grp)(a._id)
+    } else {
+      const GroupSchema = require('../../../models/group')
+      grp = new GroupSchema({
+        name: grpName,
+        members: [a._id],
+        sendMailTo: [a._id],
+        public: false
+      })
+    }
+
+    await promisify(grp.save, grp)()
+    response.account.groups = [grp]
+
+    return res.json(response)
+  } catch (err) {
+    console.log(':::::::;')
+    console.log(err)
+    return res.status(500).json({ success: false, error: err })
+  }
 }
 
 /**

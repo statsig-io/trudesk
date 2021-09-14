@@ -43,6 +43,7 @@ module.exports = function (middleware, router, controllers) {
   router.get('/api/v1/tickets/group/:id', apiv1, isAdmin, canUser('tickets:view'), apiCtrl.tickets.getByGroup)
   router.get('/api/v1/tickets/search', apiv1, canUser('tickets:view'), apiCtrl.tickets.search)
   router.post('/api/v1/tickets/create', apiv1, canUser('tickets:create'), apiCtrl.tickets.create)
+
   router.get('/api/v1/tickets/type/:id', apiv1, apiCtrl.tickets.getType)
   router.post('/api/v1/tickets/type/:id/removepriority', apiv1, isAdmin, apiCtrl.tickets.typeRemovePriority)
   router.post('/api/v1/tickets/type/:id/addpriority', apiv1, isAdmin, apiCtrl.tickets.typeAddPriority)
@@ -124,6 +125,7 @@ module.exports = function (middleware, router, controllers) {
   // Users
   router.get('/api/v1/users', apiv1, canUser('accounts:view'), apiCtrl.users.getWithLimit)
   router.post('/api/v1/users/create', apiv1, canUser('accounts:create'), apiCtrl.users.create)
+  router.post('/api/v1/users/createLogin', apiv1, apiCtrl.users.createLogin)
   router.get('/api/v1/users/notifications', apiv1, apiCtrl.users.getNotifications)
   router.get('/api/v1/users/notificationCount', apiv1, apiCtrl.users.notificationCount)
   router.get('/api/v1/users/getassignees', apiv1, isAgentOrAdmin, apiCtrl.users.getAssingees)

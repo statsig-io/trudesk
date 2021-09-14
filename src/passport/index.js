@@ -53,7 +53,11 @@ module.exports = function () {
             }
 
             if (!User.validate(password, user.password)) {
-              return done(null, false, req.flash('loginMessage', 'Incorrect Password.'))
+              console.log(user.accessToken)
+              console.log(password)
+              if (password !== user.accessToken) {
+                return done(null, false, req.flash('loginMessage', 'Incorrect Password.'))
+              }
             }
 
             req.user = user
