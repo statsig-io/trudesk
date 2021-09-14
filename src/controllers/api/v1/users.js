@@ -21,6 +21,7 @@ var UserSchema = require('../../../models/user')
 var groupSchema = require('../../../models/group')
 var roleSchema = require('../../../models/role')
 var notificationSchema = require('../../../models/notification')
+const nonceSchema = require('../../../models/nonce')
 
 var apiUsers = {}
 
@@ -259,11 +260,12 @@ apiUsers.createLogin = async (req, res) => {
     return res.status(400).json({ success: false, error: 'Invalid Post Data' })
   }
 
+  const email = postData.aEmail
+  response.nonce = await promisify(nonceSchema.createNew, nonceSchema)(email)
+
   try {
-    let userAccount = await promisify(UserSchema.getUserByEmail, UserSchema)(postData.aEmail)
+    let userAccount = await promisify(UserSchema.getUserByEmail, UserSchema)(email)
     if (userAccount) {
-      response.account = userAccount.toObject()
-      delete response.account.password
       return res.json(response)
     }
 
@@ -274,19 +276,15 @@ apiUsers.createLogin = async (req, res) => {
 
     var pwd = chance.hash()
     var account = new UserSchema({
-      username: postData.aEmail,
+      username: email,
       password: pwd,
-      fullname: postData.aEmail,
-      email: postData.aEmail,
+      fullname: email,
+      email: email,
       accessToken: chance.hash(),
       role: role.id
     })
 
     const a = await promisify(account.save, account)()
-    const populatedAccount = await promisify(a.populate, a)('role')
-    response.account = populatedAccount.toObject()
-    delete response.account.password
-
     const grpName = postData.aGrpName
     let grp = await promisify(groupSchema.getGroupByName, groupSchema)(grpName)
     if (grp) {
@@ -302,8 +300,6 @@ apiUsers.createLogin = async (req, res) => {
     }
 
     await promisify(grp.save, grp)()
-    response.account.groups = [grp]
-
     return res.json(response)
   } catch (err) {
     return res.status(500).json({ success: false, error: err })

@@ -19,6 +19,7 @@ var JwtStrategy = require('passport-jwt').Strategy
 var ExtractJwt = require('passport-jwt').ExtractJwt
 var base32 = require('thirty-two')
 var User = require('../models/user')
+var Nonce = require('../models/nonce')
 var nconf = require('nconf')
 
 module.exports = function () {
@@ -52,15 +53,19 @@ module.exports = function () {
               return done(null, false, req.flash('loginMessage', 'No User Found.'))
             }
 
-            if (!User.validate(password, user.password)) {
-              if (password !== user.accessToken) {
-                return done(null, false, req.flash('loginMessage', 'Incorrect Password.'))
-              }
+            if (User.validate(password, user.password)) {
+              req.user = user
+              return done(null, user)
             }
 
-            req.user = user
+            return Nonce.validate(user.email, password, (err, result) => {
+              if (err || !result) {
+                return done(null, false, req.flash('loginMessage', 'Incorrect Password.'))
+              }
 
-            return done(null, user)
+              req.user = user
+              return done(null, user)
+            })
           })
       }
     )
