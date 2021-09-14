@@ -29,12 +29,6 @@ countersSchema.statics.setCounter = function (counter, count, callback) {
   return this.collection.findOneAndUpdate({ _id: counter }, { $set: { next: count } }, callback)
 }
 
-countersSchema.statics.random2 = function () {
-  const timeSegment = Date.now() - 51 * 365 * 24 * 3600 * 1000 // 51 years
-  const randomSegment = Math.floor(Math.random() * 1000)
-  return Math.floor(timeSegment / 10 + randomSegment)
-}
-
 countersSchema.statics.random = function () {
   const timeSegment = Date.now() - 51 * 365 * 24 * 3600 * 1000 // 51 years
   const randomSegment = Math.floor(Math.random() * 10000)

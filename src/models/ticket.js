@@ -128,10 +128,6 @@ ticketSchema.pre('save', function (next) {
   }
 
   var c = require('./counters')
-  this.uid = c.random()
-  return next()
-
-  /*
   var self = this
   c.increment('tickets', function (err, res) {
     if (err) return next(err)
@@ -145,7 +141,6 @@ ticketSchema.pre('save', function (next) {
 
     return next()
   })
-  */
 })
 
 ticketSchema.post('save', function (doc, next) {
