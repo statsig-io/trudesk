@@ -33,7 +33,7 @@ if (!mongoConnectionUri.username) {
   if (mongoConnectionUri.shard === true)
     CONNECTION_URI = 'mongodb+srv://' + mongoConnectionUri.server + '/' + mongoConnectionUri.database
 } else {
-  mongoConnectionUri.password = encodeURIComponent(mongoConnectionUri.password)
+  mongoConnectionUri.password = encodeURI(mongoConnectionUri.password)
   if (mongoConnectionUri.shard === true)
     CONNECTION_URI =
       'mongodb+srv://' +
@@ -65,7 +65,8 @@ var options = {
   connectTimeoutMS: 30000,
   useNewUrlParser: true,
   useCreateIndex: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
+  ssl: true
 }
 
 module.exports.init = function (callback, connectionString, opts) {

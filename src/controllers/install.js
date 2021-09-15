@@ -56,10 +56,21 @@ installController.mongotest = function (req, res) {
   var data = req.body
   var dbPassword = encodeURI(data.password)
   var CONNECTION_URI =
-    'mongodb://' + data.username + ':' + dbPassword + '@' + data.host + ':' + data.port + '/' + data.database
+    'mongodb://' +
+    data.username +
+    ':' +
+    dbPassword +
+    '@' +
+    data.host +
+    ':' +
+    data.port +
+    '/' +
+    data.database +
+    '?ssl=true'
 
   if (data.port === '---')
-    CONNECTION_URI = 'mongodb+srv://' + data.username + ':' + dbPassword + '@' + data.host + '/' + data.database
+    CONNECTION_URI =
+      'mongodb+srv://' + data.username + ':' + dbPassword + '@' + data.host + '/' + data.database + '?ssl=true'
 
   var child = require('child_process').fork(path.join(__dirname, '../../src/install/mongotest'), {
     env: { FORK: 1, NODE_ENV: global.env, MONGOTESTURI: CONNECTION_URI }

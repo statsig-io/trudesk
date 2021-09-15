@@ -66,7 +66,7 @@ var userSchema = mongoose.Schema({
   resetL2AuthHash: { type: String, select: false },
   resetL2AuthExpire: { type: Date, select: false },
   hasL2Auth: { type: Boolean, required: true, default: false },
-  accessToken: { type: String, sparse: true, select: true },
+  accessToken: { type: String, sparse: true, select: false },
 
   preferences: {
     tourCompleted: { type: Boolean, default: false },
