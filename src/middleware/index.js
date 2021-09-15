@@ -75,7 +75,9 @@ module.exports = function (app, db, callback) {
       function (next) {
         var sessionStore = new MongoStore({
           mongooseConnection: db.connection,
-          autoReconnect: true
+          autoReconnect: true,
+          autoRemove: 'interval',
+          autoRemoveInterval: 10 // Value in minutes,
         })
         app.use(
           session({
