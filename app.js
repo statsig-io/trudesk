@@ -101,7 +101,7 @@ function launchInstallServer () {
   })
 }
 
-if (nconf.get('install') || (!configExists && !isDocker)) {
+if (nconf.get('install') || (!configExists && !isDocker && !process.env.TD_MONGODB_URI)) {
   launchInstallServer()
 }
 
@@ -126,7 +126,7 @@ function start () {
     } else {
       dbCallback(err, db)
     }
-  })
+  });
 }
 
 function launchServer (db) {
@@ -196,7 +196,7 @@ function launchServer (db) {
         // },
         function (next) {
           var cache = require('./src/cache/cache')
-          if (isDocker) {
+          // if (isDocker) {
             var envDocker = {
               TRUDESK_DOCKER: process.env.TRUDESK_DOCKER,
               TD_MONGODB_SERVER: process.env.TD_MONGODB_SERVER,
@@ -208,10 +208,9 @@ function launchServer (db) {
             }
 
             cache.env = envDocker
-          }
+          // }
 
           cache.init()
-
           return next()
         },
         function (next) {
@@ -251,4 +250,4 @@ function dbCallback (err, db) {
   }
 }
 
-if (!nconf.get('install') && (configExists || isDocker)) start()
+if (!nconf.get('install') && (configExists || isDocker || process.env.TD_MONGODB_URI)) start()

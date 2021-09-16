@@ -264,7 +264,6 @@ truCache.refreshCache = function (callback) {
     }
   })
 
-  loadConfig()
   var db = require('../database')
   db.init(function (err) {
     if (err) return winston.error(err)
@@ -276,7 +275,7 @@ truCache.refreshCache = function (callback) {
 
       return process.exit(0)
     })
-  })
+  }, process.env.TD_MONGODB_URI)
 })()
 
 module.exports = truCache

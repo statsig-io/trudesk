@@ -6,7 +6,6 @@
 
   pm2.connect(true, function (err) {
     if (err) throw err
-
     pm2.start(
       {
         name: 'trudesk',

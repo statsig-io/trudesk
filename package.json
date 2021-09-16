@@ -7,7 +7,7 @@
   },
   "bin": "./app.js",
   "scripts": {
-    "start": "node ./app",
+    "start": ". ./trudesk-secrets-script.sh && node runner",
     "build": "grunt build",
     "test": "mocha --recursive",
     "lint": "standard | snazzy",
