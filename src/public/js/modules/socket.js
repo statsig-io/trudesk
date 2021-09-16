@@ -18,7 +18,7 @@ define('modules/socket', ['modules/chat', 'modules/ui', 'modules/socket.io/accou
   accountsImporter
 ) {
   var socket = io.connect({
-    transports: ['polling', 'websocket']
+    transports: ['websocket'] //['polling', 'websocket']
   })
 
   var sClient = {
