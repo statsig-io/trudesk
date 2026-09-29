@@ -6,7 +6,7 @@ on:
 
 jobs:
   docker:
-    runs-on: ubuntu-20.04
+    runs-on: blacksmith-2vcpu-ubuntu-2204
     #    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v2
